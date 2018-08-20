@@ -4,6 +4,7 @@
 
 ;; Author: ongaeshi
 ;; Keywords: shell, save, async, deferred, auto
+;; Package-Version: 20180817.1502
 ;; Version: 1.0.2
 ;; Package-Requires: ((deferred "20130312") (popwin "20130329"))
 
@@ -116,6 +117,7 @@
 ;; Remove first command
 ;;;###autoload
 (defun ascmd:remove ()
+  "Remove the first command from `ascmd:setting'."
   (interactive)
   (let* ((cmd (pop ascmd:setting))
          (msg (format "(ascmd:add '(\"%s\" \"%s\"))" (car cmd) (car (cdr cmd)))))
@@ -164,7 +166,12 @@
 ;;; Private:
 
 ;; Command list
-(defvar ascmd:setting nil)
+(defvar ascmd:setting nil
+  "A list of directories and the shell commands to be run asynchronously that
+after you save file.
+
+The list is in the format:
+ ((DIR COMMAND) (DIR COMMAND) ...)")
 
 ;; Exec-command when you save file
 (add-hook 'after-save-hook 'ascmd:exec-on-save)
