@@ -175,12 +175,12 @@ The list is in the format:
 ;; Exec-command when you save file
 (add-hook 'after-save-hook 'ascmd:exec-on-save)
 (defun ascmd:exec-on-save ()
-  (if ascmd:active
-      (ascmd:exec-in (buffer-file-name) nil)))
+  (when ascmd:active
+    (ascmd:exec-in (buffer-file-name) nil)))
 
 (defun ascmd:exec-in (file-name find-file-p)
-  (if find-file-p
-      (find-file file-name))
+  (when find-file-p
+    (find-file file-name))
   (find-if '(lambda (v) (apply 'ascmd:exec1 file-name v)) ascmd:setting))
 
 (defun ascmd:exec1 (file-name path command)
@@ -199,15 +199,14 @@ The list is in the format:
       (expand-file-name path)
     path))
 
-(defun ascmd:shell-deferred (arg &optional notify-start)
+(defun ascmd:shell-deferred (arg)
   (lexical-let ((arg arg)
-                (notify-start notify-start)
                 (result "success"))
     (deferred:$
       ;; before
       (deferred:next
         (lambda ()
-          (if notify-start (ascmd:notify "start"))))
+          (when ascmd:use-notify (ascmd:notify "start"))))
       ;; main
       (deferred:process-shell arg)
       (deferred:error it (lambda (err) (setq result "failed") (cadr err)))
@@ -219,22 +218,20 @@ The list is in the format:
             (insert x)
             (if (string-equal result "failed")
                 (display-buffer ascmd:buffer-name)
-              (if (ascmd:window-popup-p)
-                  (delete-window popwin:popup-window)))
+              (when (ascmd:window-popup-p)
+                (delete-window popwin:popup-window)))
             (save-selected-window
               (let ((win (get-buffer-window (get-buffer-create ascmd:buffer-name))))
-                (if (not (null win))
-                    (progn
-                      (select-window win)
-                      (goto-char (point-max))
-                      (recenter -1)
-                      )
-                  ))))
-          (ascmd:notify result)
+                (when (not (null win))
+                  (progn
+                    (select-window win)
+                    (goto-char (point-max))
+                    (recenter -1))))))
+          (when ascmd:use-notify (ascmd:notify result))
           (pop ascmd:process-queue)
           (force-mode-line-update nil)
-          (if (ascmd:process-exec-p)
-              (ascmd:shell-deferred (car ascmd:process-queue))))))))
+          (when (ascmd:process-exec-p)
+            (ascmd:shell-deferred (car ascmd:process-queue))))))))
 
 (defun ascmd:window-popup-p ()
   (and (popwin:popup-window-live-p)
@@ -243,9 +240,9 @@ The list is in the format:
 (defvar ascmd:process-queue nil)
 
 (defun ascmd:add-command-queue (arg)
-  (if (or (<= (length ascmd:process-queue) 1)
-          (not (string-equal (car (last ascmd:process-queue)) arg)))
-      (setq ascmd:process-queue (append ascmd:process-queue (list arg)))))
+  (when (or (<= (length ascmd:process-queue) 1)
+            (not (string-equal (car (last ascmd:process-queue)) arg)))
+    (setq ascmd:process-queue (append ascmd:process-queue (list arg)))))
 
 ;; query-replace special variable
 (defun ascmd:query-reqplace (command match-path &optional cd-prefix-p)
@@ -254,7 +251,7 @@ The list is in the format:
         (dir-name  (file-name-directory match-path))
         (command (if cd-prefix-p
                      (concat "cd $DIR && (" command ")")
-                     command)))
+                   command)))
     (setq command (replace-regexp-in-string "$FILE" file-name command t))
     (setq command (replace-regexp-in-string "$DIR" dir-name command t))
     command))
