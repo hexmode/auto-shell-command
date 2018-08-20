@@ -5,7 +5,7 @@
 ;; Author: ongaeshi
 ;; Keywords: shell, save, async, deferred, auto
 ;; Version: 1.0.2
-;; Package-Requires: ((deferred "20130312") (popwin "20130329"))
+;; Package-Requires: ((deferred "20130312") (popwin "20130329") (alert "20180403"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -78,6 +78,15 @@
 (require 'popwin)
 
 ;;; Public:
+
+(defgroup ascmd nil
+  "Handle asynchronous command execution."
+  :group 'emacs)
+
+(defcustom ascmd:use-alert t
+  "If non-nil, use alert to Whether or not to notify the user"
+  :type 'boolean
+  :group 'ascmd)
 
 ;; Notify function
 ;;;###autoload
@@ -206,7 +215,7 @@ The list is in the format:
       ;; before
       (deferred:next
         (lambda ()
-          (when ascmd:use-notify (ascmd:notify "start"))))
+          (when ascmd:use-alert (ascmd:notify "start"))))
       ;; main
       (deferred:process-shell arg)
       (deferred:error it (lambda (err) (setq result "failed") (cadr err)))
@@ -227,7 +236,7 @@ The list is in the format:
                     (select-window win)
                     (goto-char (point-max))
                     (recenter -1))))))
-          (when ascmd:use-notify (ascmd:notify result))
+          (when ascmd:use-alert (ascmd:notify result))
           (pop ascmd:process-queue)
           (force-mode-line-update nil)
           (when (ascmd:process-exec-p)
