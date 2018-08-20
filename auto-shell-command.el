@@ -73,6 +73,7 @@
 (eval-when-compile (require 'cl))
 (require 'deferred)
 (require 'popwin)
+(require 'alert)
 
 ;;; Public:
 
