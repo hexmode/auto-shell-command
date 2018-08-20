@@ -53,9 +53,6 @@
 ;; ;; Popup on errors
 ;; (push '("*Auto Shell Command*" :height 20 :noselect t) popwin:special-display-config)
 
-;; ;; ;; Notification of results to Growl (optional)
-;; ;; (defun ascmd:notify (msg) (deferred:process-shell (format "growlnotify -m %s -t emacs" msg))))
-
 ;;; Command-list Setting:
 
 ;; ;; High priority under
@@ -87,14 +84,6 @@
   "If non-nil, use alert to Whether or not to notify the user"
   :type 'boolean
   :group 'ascmd)
-
-;; Notify function
-;;;###autoload
-(defun ascmd:notify (msg)
-  (message msg)                                                        ; emacs's message function
-  ;;(deferred:process-shell (format "growlnotify -m %s -t emacs" msg)) ; Growl(OSX)
-  ;;(deferred:process-shell (format "growlnotify %s /t:emacs" msg))   ; Growl(Win)
-  )
 
 ;; Toggle after-save-hook (Recommended to set the key bindings)
 ;;;###autoload
@@ -215,7 +204,7 @@ The list is in the format:
       ;; before
       (deferred:next
         (lambda ()
-          (when ascmd:use-alert (ascmd:notify "start"))))
+          (when ascmd:use-alert (alert "start"))))
       ;; main
       (deferred:process-shell arg)
       (deferred:error it (lambda (err) (setq result "failed") (cadr err)))
@@ -236,7 +225,7 @@ The list is in the format:
                     (select-window win)
                     (goto-char (point-max))
                     (recenter -1))))))
-          (when ascmd:use-alert (ascmd:notify result))
+          (when ascmd:use-alert (alert result))
           (pop ascmd:process-queue)
           (force-mode-line-update nil)
           (when (ascmd:process-exec-p)
